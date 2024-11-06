@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver Tickets</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Estilos generales */
+        * { box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #4CAF50, #009688);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+            overflow: auto;
+        }
+        .container {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            max-width: 1000px;
+            width: 100%;
+        }
+        h1 {
+            color: #4CAF50;
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        /* Estilos del formulario de búsqueda */
+        .search-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+        .search-container input[type="text"],
+        .search-container select {
+            padding: 0.4rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            outline: none;
+            height: 40px;
+        }
+        .search-container button,
+        .process-button {
+            background: #4CAF50;
+            color: #fff;
+            padding: 0.4rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            height: 40px;
+        }
+        .process-button:hover {
+            background: #388E3C;
+        }
+
+        /* Botones adicionales */
+        .button-container {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        .button-container .link, .button-container form {
+            background-color: #e0f2f1;
+            color: #009688;
+            padding: 0.7rem 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .link:hover {
+            background-color: #b2dfdb;
+        }
+        .button-container form button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #009688;
+            font-size: 1rem;
+        }
+        form input[type="file"] {
+            display: block;
+            margin: 0 auto;
+            width: auto;
+        }
+        .button-container form:hover{
+            background-color: #b2dfdb;
+        }
+
+        /* Estilo para el input file */
+        .custom-file-upload {
+            color: #009688;
+            padding: 0.4rem 0.4rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: inline-block;
+            font-size: 1rem;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Tabla de tickets */
+        .table-container {
+            margin-top: 1rem;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #009688;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #e0f7fa;
+        }
+        td form {
+            text-align: center;
+            display: inline-block;
+        }
+
+        /* Estilo de alerta */
+        .message {
+            color: #333;
+            text-align: center;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        .message.success {
+            background-color: #e0f7fa;
+            color: #00796B;
+        }
+        .message.error {
+            background-color: #ffebee;
+            color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ver Tickets</h1>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message {% if message.tags == 'warning' %}error{% else %}success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Formulario de búsqueda y ordenamiento -->
+        <form method="get" action="" class="search-container">
+            <input type="text" name="buscar" value="{{ busqueda }}" placeholder="Buscar Ticket">
+            <select name="orden">
+                <option value="secuencia" {% if orden == 'secuencia' %}selected{% endif %}>Ordenar por Secuencia</option>
+                <option value="nombre" {% if orden == 'nombre' %}selected{% endif %}>Ordenar por Nombre</option>
+                <option value="apellido" {% if orden == 'apellido' %}selected{% endif %}>Ordenar por Apellido</option>
+            </select>
+            <button type="submit">Buscar</button>
+        </form>
+
+        <!-- Botones de acciones: agregar, ver aceptados, descargar, borrar, cargar -->
+        <div class="button-container">
+            <a href="{% url 'agregar_ticket' %}" class="link">Agregar Ticket</a>
+            <a href="{% url 'ver_aceptados' %}" class="link">Ver Tickets Aceptados</a>
+
+            <!-- Descargar tickets en JSON -->
+            <form method="post" action="">
+                {% csrf_token %}
+                <input type="hidden" name="descargar_json" value="true">
+                <button type="submit">Descargar JSON</button>
+            </form>
+
+            <!-- Borrar todos los tickets -->
+            <form method="post" action="">
+                {% csrf_token %}
+                <input type="hidden" name="borrar_tickets" value="true">
+                <button type="submit">Borrar Todos los Tickets</button>
+            </form>
+
+            <!-- Cargar tickets desde archivo -->
+            <form method="post" enctype="multipart/form-data" action="">
+                {% csrf_token %}
+                <input id="file-upload" type="file" name="file" accept=".json" class="custom-file-upload">
+                <button type="submit" name="cargar_tickets">Cargar Tickets</button>
+            </form>
+        </div>
+
+        <!-- Tabla del primer ticket en cola -->
+        {% if primer_ticket %}
+            <h2>Ticket en Atención</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Secuencia</th>
+                            <th>Nombre</th>
+                            <th>Apellido</th>
+                            <th>Discapacidad</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ primer_ticket.secuencia }}</td>
+                            <td>{{ primer_ticket.nombre_cliente }}</td>
+                            <td>{{ primer_ticket.apellido }}</td>
+                            <td>{{ primer_ticket.discapacidad|yesno:"Sí,No" }}</td>
+                            <td>
+                                <form action="{% url 'aceptar_ticket' %}" method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="secuencia" value="{{ primer_ticket.secuencia }}">
+                                    <button type="submit" class="process-button">Aceptar</button>
+                                </form>
+                                <form action="{% url 'eliminar_ticket' primer_ticket.id %}" method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="process-button">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+
+        <!-- Tabla de todos los tickets -->
+        <h2>Todos los Tickets</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Secuencia</th>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Discapacidad</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                        <tr>
+                            <td>{{ ticket.secuencia }}</td>
+                            <td>{{ ticket.nombre_cliente }}</td>
+                            <td>{{ ticket.apellido }}</td>
+                            <td>{{ ticket.discapacidad|yesno:"Sí,No" }}</td>
+                            <td>
+                                <form action="{% url 'eliminar_ticket' ticket.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="process-button">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

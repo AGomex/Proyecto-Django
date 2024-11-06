@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tickets Aceptados</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Estilos generales */
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #4CAF50, #009688);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+            overflow: auto;
+        }
+        .container {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            max-width: 1000px;
+            width: 100%;
+        }
+        h1 {
+            color: #4CAF50;
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        /* Botones adicionales */
+        .button-container {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        .button-container .link {
+            background-color: #e0f2f1;
+            color: #009688;
+            padding: 0.7rem 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            text-decoration: none;
+        }
+        .link:hover {
+            background-color: #b2dfdb;
+        }
+
+        /* Tabla de tickets */
+        .table-container {
+            margin-top: 1rem;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #009688;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #e0f7fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tickets Aceptados</h1>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message {% if message.tags == 'warning' %}error{% else %}success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Botón para volver a la vista de todos los tickets -->
+        <div class="button-container">
+            <a href="{% url 'ver_tickets' %}" class="link">Volver a Todos los Tickets</a>
+        </div>
+
+        <!-- Tabla de tickets aceptados -->
+        <h2>Lista de Tickets Aceptados</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Secuencia</th>
+                        <th>Nombre Cliente</th>
+                        <th>Apellido</th>
+                        <th>Discapacidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                    <tr>
+                        <td>{{ ticket.secuencia }}</td>
+                        <td>{{ ticket.nombre_cliente }}</td>
+                        <td>{{ ticket.apellido }}</td>
+                        <td>{{ ticket.discapacidad|yesno:"Sí,No" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">No hay tickets aceptados.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
